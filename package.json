@@ -9,7 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^1.1.11",
     "@clerk/nextjs": "^6.11.3",
+    "ai": "^4.1.41",
     "next": "15.1.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
