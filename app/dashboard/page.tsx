@@ -2,31 +2,18 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-
-interface User {
-  name: string;
-  email: string;
-  image: string;
-}
+import { useUser, SignOutButton } from "@clerk/nextjs";
 
 export default function Dashboard() {
-  const [user, setUser] = useState<User | null>(null);
+  const { isLoaded, user } = useUser();
   const [activeTab, setActiveTab] = useState('dashboard');
   const router = useRouter();
 
   useEffect(() => {
-    const userData = localStorage.getItem('user');
-    if (!userData) {
+    if (isLoaded && !user) {
       router.push('/signin');
-    } else {
-      setUser(JSON.parse(userData));
     }
-  }, [router]);
-
-  const handleSignOut = () => {
-    localStorage.removeItem('user');
-    router.push('/signin');
-  };
+  }, [isLoaded, user, router]);
 
   const menuItems = [
     { id: 'dashboard', name: 'Dashboard', icon: '📊' },
@@ -38,12 +25,16 @@ export default function Dashboard() {
     { id: 'emails', name: 'Draft Emails', icon: '📧' },
   ];
 
-  if (!user) {
+  if (!isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
       </div>
     );
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (
@@ -87,14 +78,13 @@ export default function Dashboard() {
         <div className="absolute bottom-0 w-64 border-t border-gray-800">
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center">
-              <span className="font-medium text-sm">{user.name}</span>
+              <span className="font-medium text-sm">{user.fullName}</span>
             </div>
-            <button
-              onClick={handleSignOut}
-              className="text-sm text-gray-400 hover:text-white"
-            >
-              Sign out
-            </button>
+            <SignOutButton>
+              <button className="text-sm text-gray-400 hover:text-white">
+                Sign out
+              </button>
+            </SignOutButton>
           </div>
         </div>
       </div>
@@ -153,8 +143,6 @@ export default function Dashboard() {
                 </div>
               </>
             )}
-
-            {/* Add other tab contents as needed */}
           </div>
         </div>
       </div>

@@ -37,7 +37,7 @@ export default function SignInPage() {
             }
           }}
           redirectUrl="/dashboard"
-          routing="hash"
+          routing="path"
         />
       </div>
     </div>
