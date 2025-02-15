@@ -14,7 +14,9 @@ type EmailCard = {
 export default function Draft() {
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [inputText, setInputText] = useState('');
-    const { messages, input, handleSubmit, handleInputChange, isLoading } = useChat();
+    // Initialize useChat with proper configuration
+    const { messages, input, handleSubmit, handleInputChange, stop } = useChat({});
+    console.log(messages)
 
     // Add this example data
     const emailCards: EmailCard[] = [
@@ -35,12 +37,26 @@ Best regards,
         }
     ];
 
-    const handleMainInputSubmit = () => {
+    const handleMainInputSubmit = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        
         if (inputText.trim()) {
             setIsChatOpen(true);
-            // Optionally, you could also send this as the first message to the chat
-            // handleInputChange({ target: { value: inputText } } as any);
-            // handleSubmit(new Event('submit') as any);
+            
+            // Set the input value in the chat
+            await handleInputChange({ target: { value: inputText } } as React.ChangeEvent<HTMLInputElement>);
+            
+            // Submit using handleSubmit directly
+            await handleSubmit(undefined, {
+                options: {
+                    body: {
+                        message: inputText
+                    }
+                }
+            });
+            
+            // Clear the main input
+            setInputText('');
         }
     };
 
@@ -48,7 +64,7 @@ Best regards,
         <div className="min-h-screen flex flex-col relative bg-[#FEF5F2]">
             {/* Main content with transition */}
             <div className={`transition-all duration-300 ease-in-out ${
-                isChatOpen && inputText.trim() ? 'mr-96' : 'mr-0'
+                isChatOpen ? 'mr-96' : 'mr-0'
             }`}>
                 <div className="bg-[#FFFDF9] p-8">
                     <div className="max-w-3xl mx-auto">
@@ -133,10 +149,8 @@ Best regards,
             </div>
 
             {/* Chat Sidebar */}
-            {isChatOpen && inputText.trim() && (
-                <div className={`fixed right-0 top-0 h-full w-96 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
-                    isChatOpen ? 'translate-x-0' : 'translate-x-full'
-                }`}>
+            {isChatOpen && (
+                <div className={`fixed right-0 top-0 h-full w-96 bg-white shadow-lg transform transition-transform duration-300 ease-in-out translate-x-0`}>
                     <div className="h-full flex flex-col">
                         {/* Chat Header */}
                         <div className="p-4 bg-[#FFFDF9] border-b border-[#D7D3C9] flex justify-between items-center">
@@ -160,10 +174,12 @@ Best regards,
                                             ? 'bg-[#FF4F01] text-white' 
                                             : 'bg-white text-[#1D1B1B]'
                                     }`}>
-                                        <p className="text-sm">{message.content}</p>
+                                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                                     </div>
                                 </div>
                             ))}
+                            
+                            
                         </div>
 
                         {/* Chat Input */}
@@ -173,12 +189,10 @@ Best regards,
                                     value={input}
                                     onChange={handleInputChange}
                                     placeholder="Type your message..."
-                                    disabled={isLoading}
-                                    className="w-full p-3 pr-12 rounded-lg border border-[#D7D3C9] focus:outline-none focus:border-[#FF4F01] bg-[#FFFDF9]"
+                                    className="w-full p-3 pr-12 rounded-lg border border-[#D7D3C9] focus:outline-none focus:border-[#FF4F01] bg-[#FFFDF9] disabled:opacity-50"
                                 />
                                 <button 
                                     type="submit"
-                                    disabled={isLoading}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1D1B1B] hover:text-[#FF4F01] disabled:opacity-50"
                                 >
                                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
