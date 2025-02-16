@@ -36,12 +36,13 @@ export default function Simulation() {
         if (isLoading) return; // Prevent multiple calls
         setIsLoading(true);
         
+        const resume = localStorage.getItem('resume');
         const payload = {
             messages: [],
             context: {
-                jobDescription: "Placeholder job description",
-                resumeContext: "Placeholder résumé context",
-                requiredSkills: "Placeholder required skills",
+                jobDescription: "N/A",
+                resumeContext: resume || "Placeholder résumé context",
+                requiredSkills: "N/A",
                 chatContext: "N/A"
             }
         };
@@ -66,7 +67,7 @@ export default function Simulation() {
 
     // Posts the conversation (including candidate answer) to the API for the next AI question.
     async function fetchNextQuestion(updatedMessages: Array<{ role: string, content: string }>) {
-        if (isLoading) return; // Prevent multiple calls
+        if (isLoading) return;
         setIsLoading(true);
 
         const payload = {
@@ -89,12 +90,24 @@ export default function Simulation() {
                 throw new Error('Network error');
             }
             const data = await res.json();
+            
+            // Save evaluation if it exists
+            if (data.evaluation) {
+                const evaluations = JSON.parse(localStorage.getItem('interview_evaluations') || '[]');
+                evaluations.push({
+                    id: Date.now(),
+                    timestamp: new Date().toISOString(),
+                    evaluation: data.evaluation,
+                    response: updatedMessages[updatedMessages.length - 1].content
+                });
+                localStorage.setItem('interview_evaluations', JSON.stringify(evaluations));
+            }
+
             setConversation(prev => [...prev, { role: 'assistant', content: data.nextQuestion }]);
         } catch (error) {
             console.error('Error fetching next question:', error);
         } finally {
             setIsLoading(false);
-            // Simply reset the processing flag. We no longer need to restart recognition manually.
             isProcessingResponseRef.current = false;
         }
     }
@@ -230,80 +243,70 @@ export default function Simulation() {
     }
 
     return (
-        <div className="min-h-screen bg-[#FEF5F2] p-8">
-            <div className="flex flex-row gap-8">
-                <div className="flex flex-col items-start">
-                    <div className="bg-[#FFFDF9] border-2 border-[#5B524F] rounded-2xl p-6 shadow-lg">
-                        <h1 className="text-xl font-bold mb-4">Interview Simulation</h1>
-                        
-                        <div className="mb-4">
-                            <video 
-                                ref={videoRef} 
-                                autoPlay 
-                                playsInline 
-                                muted 
-                                className="w-[320px] h-[240px] bg-gray-100 rounded-lg border-2 border-[#5B524F]"
-                            />
-                        </div>
+        <div className="min-h-screen bg-[#FEF5F2] p-4">
+            <div className="grid grid-cols-3 gap-4">
+                {/* Video Panel */}
+                <div className="bg-[#FFFDF9] border-2 border-[#5B524F] rounded-lg p-4 shadow-lg">
+                    <h1 className="text-lg font-bold mb-2">Interview Simulation</h1>
+                    <video 
+                        ref={videoRef} 
+                        autoPlay 
+                        playsInline 
+                        muted 
+                        className="w-full aspect-video bg-gray-100 rounded-lg border-2 border-[#5B524F] mb-2"
+                    />
+                    <button
+                        onClick={handleStartStop}
+                        disabled={isLoading}
+                        className="w-full px-4 py-2 bg-[#FF4F01] text-white rounded-full font-semibold 
+                            hover:bg-black transition-all duration-200 
+                            disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isLoading ? 'Loading...' : isRecording ? 'Stop Interview' : 'Start Interview'}
+                    </button>
+                </div>
 
-                        <button
-                            onClick={handleStartStop}
-                            disabled={isLoading}
-                            className="px-6 py-3 bg-blue-600 text-white rounded-full font-semibold 
-                                hover:bg-blue-700 transform transition-all duration-200 
-                                hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl 
-                                active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            {isLoading ? 'Loading...' : isRecording ? 'Stop Interview' : 'Start Interview'}
-                        </button>
+                {/* Transcript Panel */}
+                <div className="bg-[#FFFDF9] border-2 border-[#5B524F] rounded-lg p-4 shadow-lg">
+                    <h2 className="text-lg font-bold mb-2">Transcript</h2>
+                    <div className="h-[calc(100%-3rem)] overflow-y-auto bg-white p-3 rounded-lg border-2 border-[#5B524F]">
+                        {transcript || 'Your speech will appear here...'}
                     </div>
                 </div>
 
-                <div className="flex-1">
-                    <div className="bg-[#FFFDF9] border-2 border-[#5B524F] rounded-2xl p-6 shadow-lg">
-                        <h2 className="text-xl font-bold mb-4">Transcript</h2>
-                        <div className="h-[240px] overflow-y-auto bg-white p-4 rounded-lg border-2 border-[#5B524F]">
-                            {transcript || 'Your speech will appear here...'}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex-1">
-                    <div className="bg-[#FFFDF9] border-2 border-[#5B524F] rounded-2xl p-6 shadow-lg">
-                        <h2 className="text-xl font-bold mb-4">Recorded Responses</h2>
-                        <div className="max-h-[500px] overflow-y-auto space-y-4">
-                            {responses.length === 0 ? (
-                                <div className="bg-white p-4 rounded-lg border-2 border-[#5B524F]">
-                                    No responses recorded yet. Say "finish response" to save a response.
-                                </div>
-                            ) : (
-                                responses.map((response, index) => (
-                                    <div key={index} className="bg-white p-4 rounded-lg border-2 border-[#5B524F]">
-                                        <div className="text-sm text-gray-600">
-                                            {`${formatTime(response.startTime - responses[0].startTime)} to ${formatTime(response.endTime - responses[0].startTime)}`}
-                                        </div>
-                                        <div className="mt-2 font-semibold">Response Summary:</div>
-                                        <div className="mt-1">{response.text}</div>
-                                        <div className="mt-2 font-semibold">Full Transcript:</div>
-                                        <div className="mt-1 text-gray-700">{response.fullTranscript}</div>
+                {/* Responses Panel */}
+                <div className="bg-[#FFFDF9] border-2 border-[#5B524F] rounded-lg p-4 shadow-lg">
+                    <h2 className="text-lg font-bold mb-2">Recorded Responses</h2>
+                    <div className="h-[calc(100%-3rem)] overflow-y-auto space-y-2">
+                        {responses.length === 0 ? (
+                            <div className="bg-white p-3 rounded-lg border-2 border-[#5B524F] text-sm">
+                                No responses recorded yet. Say "finish response" to save a response.
+                            </div>
+                        ) : (
+                            responses.map((response, index) => (
+                                <div key={index} className="bg-white p-3 rounded-lg border-2 border-[#5B524F] text-sm">
+                                    <div className="text-gray-600">
+                                        {`${formatTime(response.startTime - responses[0].startTime)} to ${formatTime(response.endTime - responses[0].startTime)}`}
                                     </div>
-                                ))
-                            )}
-                        </div>
+                                    <div className="mt-1 font-semibold">Response:</div>
+                                    <div className="mt-0.5">{response.text}</div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
             </div>
 
             {/* Interview Conversation Panel */}
-            <div className="mt-8">
-                <div className="bg-[#FFFDF9] border-2 border-[#5B524F] rounded-2xl p-6 shadow-lg">
-                    <h2 className="text-xl font-bold mb-4">Interview Conversation</h2>
-                    <div className="max-h-[300px] overflow-y-auto">
+            <div className="mt-4">
+                <div className="bg-[#FFFDF9] border-2 border-[#5B524F] rounded-lg p-4 shadow-lg">
+                    <h2 className="text-lg font-bold mb-2">Interview Conversation</h2>
+                    <div className="max-h-[200px] overflow-y-auto">
                         {conversation.length === 0 ? (
-                            <p className="text-gray-600">The conversation will appear here once you start your interview.</p>
+                            <p className="text-gray-600 text-sm">The conversation will appear here once you start your interview.</p>
                         ) : (
                             conversation.map((msg, index) => (
-                                <div key={index} className={`mb-2 ${msg.role === 'assistant' ? 'text-blue-700' : 'text-green-700'}`}>
+                                <div key={index} className={`mb-1 text-sm ${msg.role === 'assistant' ? 'text-blue-700' : 'text-green-700'}`}>
                                     <strong>{msg.role === 'assistant' ? 'AI' : 'You'}:</strong> {msg.content}
                                 </div>
                             ))

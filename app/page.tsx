@@ -89,10 +89,10 @@ export default function Home() {
   ];
 
   const featureImages = {
-    0: "/chatbot.png",    // Placeholder for Feature 1
-    1: "/wompwomp1.png",    // Placeholder for Feature 2
-    2: "/wompwomp2.png",    // Placeholder for Feature 3
-    3: "/wompwomp3.png"     // Placeholder for Feature 4
+    0: "/home/practice.png",    // Placeholder for Feature 1
+    1: "/home/dashboard.png",    // Placeholder for Feature 2
+    2: "/home/resume.png",    // Placeholder for Feature 3
+    3: "/home/practice.png"     // Placeholder for Feature 4
   };
 
   const techStackRef = useInView({ threshold: 0.2 });
@@ -323,13 +323,14 @@ export default function Home() {
 
             {/* Right Column - Preview Window */}
             <div className="relative">
-              <div className="bg-white rounded-lg shadow-xl p-2">
+              <div className="bg-white rounded-lg">
                 <div className="relative h-[400px]">
                   <Image
+                    key={expandedStep}
                     src={featureImages[expandedStep as keyof typeof featureImages]}
                     alt={`Feature ${(expandedStep || 0) + 1}`}
                     fill
-                    className="rounded-lg object-contain transition-opacity duration-300"
+                    className="rounded-lg object-contain transition-all duration-500 ease-in-out"
                   />
                 </div>
               </div>

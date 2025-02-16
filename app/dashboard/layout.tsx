@@ -71,27 +71,7 @@ export default function DashboardLayout({
       ),
       path: '/dashboard/practice'
     },
-    { 
-      id: 'progress', 
-      name: 'View Progress', 
-      icon: (
-        <svg className="w-5 h-5 fill-[#413735]" viewBox="0 0 24 24">
-          <path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>
-        </svg>
-      ),
-      path: '/dashboard/progress'
-    },
-    { type: 'divider', id: 'divider1' },
-    { 
-      id: 'resources', 
-      name: 'Resources', 
-      icon: (
-        <svg className="w-5 h-5 fill-[#413735]" viewBox="0 0 24 24">
-          <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
-        </svg>
-      ),
-      path: '/dashboard/resources'
-    },
+
     { 
       id: 'uploadcv', 
       name: 'Upload CV', 
@@ -103,16 +83,7 @@ export default function DashboardLayout({
       path: '/dashboard/uploadCV'
     },
     { type: 'divider', id: 'divider2' },
-    { 
-      id: 'fix-cv', 
-      name: 'Fix CV', 
-      icon: (
-        <svg className="w-5 h-5 fill-[#413735]" viewBox="0 0 24 24">
-          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-        </svg>
-      ),
-      path: '/dashboard/fix-cv'
-    },
+
     { 
       id: 'emails', 
       name: 'Draft Emails', 
