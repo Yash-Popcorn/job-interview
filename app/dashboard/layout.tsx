@@ -1,8 +1,27 @@
 'use client';
+import React from 'react';
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { useUser, SignOutButton } from "@clerk/nextjs";
+
+interface MenuItem {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  path: string;
+  type?: never;
+}
+
+interface DividerItem {
+  type: 'divider';
+  id: string;
+  name?: never;
+  icon?: never;
+  path?: never;
+}
+
+type MenuItemType = MenuItem | DividerItem;
 
 export default function DashboardLayout({
   children,
@@ -31,7 +50,7 @@ export default function DashboardLayout({
     return null;
   }
 
-  const menuItems = [
+  const menuItems: MenuItemType[] = [
     { 
       id: 'dashboard', 
       name: 'Dashboard', 
@@ -62,7 +81,7 @@ export default function DashboardLayout({
       ),
       path: '/dashboard/progress'
     },
-    { type: 'divider' },
+    { type: 'divider', id: 'divider1' },
     { 
       id: 'resources', 
       name: 'Resources', 
@@ -74,16 +93,16 @@ export default function DashboardLayout({
       path: '/dashboard/resources'
     },
     { 
-      id: 'cv', 
-      name: 'Add CV', 
+      id: 'uploadcv', 
+      name: 'Upload CV', 
       icon: (
         <svg className="w-5 h-5 fill-[#413735]" viewBox="0 0 24 24">
           <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zM8 15.01l1.41 1.41L11 14.84V19h2v-4.16l1.59 1.59L16 15.01 12.01 11z"/>
         </svg>
       ),
-      path: '/dashboard/cv'
+      path: '/dashboard/uploadCV'
     },
-    { type: 'divider' },
+    { type: 'divider', id: 'divider2' },
     { 
       id: 'fix-cv', 
       name: 'Fix CV', 
@@ -122,9 +141,9 @@ export default function DashboardLayout({
 
         {/* Navigation Menu */}
         <nav className="mt-2">
-          {menuItems.map((item, index) => (
-            item.type === 'divider' ? (
-              <div key={index} className="my-2 border-t border-gray-200" />
+          {menuItems.map((item) => (
+            'type' in item ? (
+              <div key={item.id} className="my-2 border-t border-gray-200" />
             ) : (
               <button
                 key={item.id}
